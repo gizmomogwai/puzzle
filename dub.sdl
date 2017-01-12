@@ -1,0 +1,6 @@
+name "puzzle"
+description "DLang implemenation for olis christmas puzzle."
+authors "Christian Köstlin"
+copyright "Copyright © 2016, Christian Köstlin"
+license "proprietary"
+dependency "imageformats" version="~>6.1.0"
