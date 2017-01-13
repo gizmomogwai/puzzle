@@ -1,3 +1,5 @@
+// see discussion https://news.ycombinator.com/item?id=12667611
+
 import std.stdio;
 import std.string;
 import std.random;
@@ -7,22 +9,15 @@ import std.conv;
 import std.path;
 
 void swapCols(IFImage* image, int colA, int colB) {
-  writeln("swapping ", colA, " and ", colB);
   for (int j=0; j<image.h; ++j) {
     int p1Idx = (j * image.w + colA) * 3;
     int p2Idx = (j * image.w + colB) * 3;
 
-    ubyte b1 = image.pixels[p1Idx];
-    ubyte b2 = image.pixels[p1Idx+1];
-    ubyte b3 = image.pixels[p1Idx+3];
-
-    image.pixels[p1Idx] = image.pixels[p2Idx];
-    image.pixels[p1Idx+1] = image.pixels[p2Idx+1];
-    image.pixels[p1Idx+2] = image.pixels[p2Idx+2];
-
-    image.pixels[p2Idx] = b1;
-    image.pixels[p2Idx+1] = b2;
-    image.pixels[p2Idx+2] = b3;
+    for (int i=0; i<3; ++i) {
+      ubyte b = image.pixels[p1Idx + i];
+      image.pixels[p1Idx + i] = image.pixels[p2Idx + i];
+      image.pixels[p2Idx + i] = b;
+    }
   }
 }
 
@@ -45,7 +40,8 @@ int calcDelta(IFImage* image, int colA, int colB, int max) {
     }
     */
   }
-  return cast(int)sqrt(cast(float)sum);
+  // return cast(int)sqrt(cast(float)sum);
+  return sum;
 }
 
 unittest {
