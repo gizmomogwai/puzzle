@@ -1,9 +1,11 @@
 import std.stdio;
 import std.string;
 import std.random;
-import std.math : abs;
+import std.math;
 import imageformats;
 import std.conv;
+import std.path;
+
 void swapCols(IFImage* image, int colA, int colB) {
   writeln("swapping ", colA, " and ", colB);
   for (int j=0; j<image.h; ++j) {
@@ -24,18 +26,46 @@ void swapCols(IFImage* image, int colA, int colB) {
   }
 }
 
-int calcDelta(IFImage* image, int colA, int colB) {
+int calcDelta(IFImage* image, int colA, int colB, int max) {
   int colAStart = colA * 3;
   int colBStart = colB * 3;
   int sum = 0;
   for (int y=0; y<image.h; y++) {
     int offset = y*image.w * 3;
 
-    sum += abs(image.pixels[offset + colAStart] - image.pixels[offset + colBStart]);
-    sum += abs(image.pixels[offset + colAStart + 1] - image.pixels[offset + colBStart + 1]);
-    sum += abs(image.pixels[offset + colAStart + 2] - image.pixels[offset + colBStart + 2]);
+    int offsetA = offset + colAStart;
+    int offsetB = offset + colBStart;
+    for (int i=0; i<3; ++i) {
+      sum += abs(image.pixels[offsetA + i] - image.pixels[offsetB + i]);
+    }
+    /*
+      // does not work with sqrt
+    if (sum > max) {
+      return max;
+    }
+    */
   }
-  return sum;
+  return cast(int)sqrt(cast(float)sum);
+}
+
+unittest {
+  const w = 2;
+  const h = 2;
+  const cf = ColFmt.RGB;
+  auto i = IFImage(w, h, cf, new ubyte[w*h*cf]);
+  i.pixels[0] = 0;
+  i.pixels[1] = 2;
+  i.pixels[2] = 0;
+
+  i.pixels[3] = 0;
+  i.pixels[4] = 0;
+  i.pixels[5] = 4;
+
+  auto d = calcDelta(&i, 0, 1, 10);
+  assert(36 == d);
+
+  d = calcDelta(&i, 0, 1, 4);
+  assert(16 == d);
 }
 
 struct Match {
@@ -51,7 +81,7 @@ Match findBest(int forColumn, IFImage* image, ref int[] todo) {
 
   int i = 0;
   foreach (c; todo) {
-    auto d = calcDelta(image, forColumn, c);
+    auto d = calcDelta(image, forColumn, c, delta);
     if (d < delta) {
       delta = d;
       column = c;
@@ -117,27 +147,8 @@ IFImage* unscramble(IFImage image) {
       todo = remove(todo, rightBest.index);
     }
   }
-  writeln("result: ", result);
   return image.reassembleWith(result);
 }
-
-unittest {
-  const w = 2;
-  const h = 2;
-  const cf = ColFmt.RGB;
-  auto i = IFImage(w, h, cf, new ubyte[w*h*cf]);
-  i.pixels[0] = 0;
-  i.pixels[1] = 2;
-  i.pixels[2] = 0;
-
-  i.pixels[3] = 0;
-  i.pixels[4] = 0;
-  i.pixels[5] = 4;
-
-  auto d = calcDelta(&i, 0, 1);
-  assert(6 == d);
-}
-
 
 int main(string[] args) {
   writeln(args);
@@ -147,7 +158,7 @@ int main(string[] args) {
   }
   auto action = args[1];
   auto inputFileName = args[2];
-  auto outputFileName = "%s.%sd.png".format(inputFileName, action);
+  auto outputFileName = "out/%s.%sd.png".format(baseName(inputFileName), action);
   auto input = read_image(inputFileName, ColFmt.RGB);
 
   if (action == "scramble") {
@@ -159,14 +170,9 @@ int main(string[] args) {
       swapCols(&input, colA, colB);
     }
     write_png(outputFileName, input.w, input.h, input.pixels);
-
-    auto output = input.unscramble();
-    write_png("test.png", output.w, output.h, output.pixels);
   } else if (action == "unscramble") {
-    write_png(outputFileName, input.w, input.h, input.pixels);
-
-    writeln("nyi");
-    return 1;
+    auto output = input.unscramble();
+    write_png(outputFileName, output.w, output.h, output.pixels);
   }
   return 0;
 }
