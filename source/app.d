@@ -40,8 +40,8 @@ int calcDelta(IFImage* image, int colA, int colB, int max) {
     }
     */
   }
-  // return cast(int)sqrt(cast(float)sum);
-  return sum;
+  return cast(int)sqrt(cast(float)sum);
+  // return sum;
 }
 
 unittest {
@@ -132,7 +132,7 @@ IFImage* unscramble(IFImage image) {
   result ~= 0;
 
   while (todo.length > 0) {
-    writeln("todo: ", todo.length);
+    // writeln("todo: ", todo.length);
     auto leftBest = findBest(result[0], &image, todo);
     auto rightBest = findBest(result[$-1], &image, todo);
     if (leftBest.delta < rightBest.delta) {

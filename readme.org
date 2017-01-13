@@ -1,0 +1,6 @@
+* dlang implementation of a variant of olis christmas puzzle
+see discussion https://news.ycombinator.com/item?id=12667611
+
+* Legal Disclaimer
+This repository contains images. If I violate your copyright with one
+of those, please contact me, I will remove them immediately.
